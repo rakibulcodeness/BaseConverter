@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html>
+
 <head>
 <meta charset="UTF-8">
 <title>Universal Base Converter</title>
@@ -7,51 +8,55 @@
 <style>
 
 body{
-    background:#111;
-    color:white;
-    font-family:Arial;
-    padding:30px;
+background:#111;
+color:white;
+font-family:Arial;
+padding:30px;
 }
 
 .container{
-    max-width:700px;
-    margin:auto;
+max-width:800px;
+margin:auto;
 }
 
 input{
-    width:100%;
-    padding:10px;
-    margin:8px 0;
-    font-size:18px;
+width:100%;
+padding:12px;
+margin:8px 0;
+font-size:18px;
+box-sizing:border-box;
 }
 
 button{
-    padding:10px 16px;
-    margin:5px;
-    font-size:16px;
+padding:12px 20px;
+margin-right:10px;
+font-size:16px;
+cursor:pointer;
 }
 
 #result{
-    margin-top:20px;
-    font-size:20px;
+margin-top:20px;
+font-size:22px;
+word-break:break-word;
 }
 
 table{
-    width:100%;
-    border-collapse:collapse;
-    margin-top:20px;
+width:100%;
+border-collapse:collapse;
+margin-top:20px;
 }
 
 td,th{
-    border:1px solid #555;
-    padding:8px;
+border:1px solid #444;
+padding:8px;
 }
 
 .hidden{
-    display:none;
+display:none;
 }
 
 </style>
+
 </head>
 
 <body>
@@ -60,14 +65,17 @@ td,th{
 
 <h1>Universal Base Converter</h1>
 
-<input id="num"
+<input
+id="number"
 placeholder="Enter number">
 
-<input id="from"
+<input
+id="fromBase"
 type="number"
 placeholder="From Base">
 
-<input id="to"
+<input
+id="toBase"
 type="number"
 placeholder="To Base">
 
@@ -81,13 +89,15 @@ Show Digit Table
 
 <div id="result"></div>
 
-<div id="tableBox" class="hidden">
+<div
+id="tableContainer"
+class="hidden">
 
 <table>
 
 <thead>
 <tr>
-<th>Symbol</th>
+<th>Digit</th>
 <th>Value</th>
 </tr>
 </thead>
@@ -104,23 +114,26 @@ Show Digit Table
 <script>
 
 const DIGITS =
-"0123456789" +
-"ABCDEFGHIJKLMNOPQRSTUVWXYZ" +
-"abcdefghijklmnopqrstuvwxyz" +
+"0123456789"+
+"ABCDEFGHIJKLMNOPQRSTUVWXYZ"+
+"abcdefghijklmnopqrstuvwxyz"+
 "!#$%&()*+,-/:;<=>?@[\\]^_`{|}~";
 
 const MAX_BASE =
 DIGITS.length;
 
-function valueOf(ch){
+function valueOf(c){
 
 const v =
-DIGITS.indexOf(ch);
+DIGITS.indexOf(c);
 
-if(v===-1)
-throw Error(
-"Invalid character: " + ch
+if(v===-1){
+
+throw new Error(
+"Unknown digit: "+c
 );
+
+}
 
 return v;
 
@@ -132,10 +145,16 @@ return DIGITS[v];
 
 }
 
-function validate(text,base){
+function validate(
+text,
+base
+){
 
 text =
-text.replace(".","");
+text.replace(
+".",
+""
+);
 
 for(
 const c
@@ -146,8 +165,11 @@ if(
 valueOf(c)
 >=
 base
-)
+){
+
 return false;
+
+}
 
 }
 
@@ -163,10 +185,10 @@ base
 const parts =
 text.split(".");
 
-const int =
+const integer =
 parts[0];
 
-const frac =
+const fraction =
 parts[1] || "";
 
 let total =
@@ -174,31 +196,31 @@ let total =
 
 for(
 let i=0;
-i<int.length;
+i<integer.length;
 i++
 ){
 
 total +=
 valueOf(
-int[i]
+integer[i]
 )
 *
 Math.pow(
 base,
-int.length-i-1
+integer.length-i-1
 );
 
 }
 
 for(
 let i=0;
-i<frac.length;
+i<fraction.length;
 i++
 ){
 
 total +=
 valueOf(
-frac[i]
+fraction[i]
 )
 *
 Math.pow(
@@ -213,85 +235,105 @@ return total;
 }
 
 function fromDecimal(
-num,
+number,
 base,
 precision=20
 ){
 
-let int =
+let integer =
 Math.floor(
-num
+number
 );
 
-let frac =
-num-int;
+let fraction =
+number-
+integer;
 
-let out =
+let output =
 "";
 
 if(
-int===0
-)
-out="0";
-
-while(
-int>0
+integer===0
 ){
 
-out =
-digitOf(
-int%base
-)
-+
-out;
+output =
+"0";
 
-int =
+}
+
+while(
+integer>0
+){
+
+output =
+digitOf(
+integer%
+base
+)+
+output;
+
+integer =
 Math.floor(
-int/base
+integer/
+base
 );
 
 }
 
 if(
-frac===0
-)
-return out;
+fraction===0
+){
 
-out += ".";
+return output;
+
+}
+
+output += ".";
 
 for(
 let i=0;
-i<precision;
+i<
+precision;
 i++
 ){
 
-frac *= base;
+fraction *=
+base;
 
-let d =
+let digit =
 Math.floor(
-frac
+fraction
 );
 
-out +=
-digitOf(d);
+output +=
+digitOf(
+digit
+);
 
-frac -= d;
+fraction -=
+digit;
 
 if(
-frac===0
-)
+fraction===0
+){
+
 break;
 
 }
 
-return out;
+}
+
+return output;
 
 }
 
-function showTable(base){
+function updateTable(
+base
+){
 
 const body =
-document.getElementById(
+document
+.getElementById(
 "tableBody"
 );
 
@@ -305,7 +347,8 @@ i++
 ){
 
 const row =
-document.createElement(
+document
+.createElement(
 "tr"
 );
 
@@ -327,10 +370,10 @@ function convert(){
 
 try{
 
-const num =
+const number =
 document
 .getElementById(
-"num"
+"number"
 )
 .value
 .trim();
@@ -339,7 +382,7 @@ const from =
 Number(
 document
 .getElementById(
-"from"
+"fromBase"
 )
 .value
 );
@@ -348,7 +391,7 @@ const to =
 Number(
 document
 .getElementById(
-"to"
+"toBase"
 )
 .value
 );
@@ -356,32 +399,41 @@ document
 if(
 from<2||
 to<2||
-from>MAX_BASE||
-to>MAX_BASE
-)
-throw Error(
-"Supported bases: 2–"+MAX_BASE
+from>
+MAX_BASE||
+to>
+MAX_BASE
+){
+
+throw new Error(
+"Supported bases: 2–"+
+MAX_BASE
 );
+
+}
 
 if(
 !validate(
-num,
+number,
 from
 )
-)
-throw Error(
-"Invalid number"
+){
+
+throw new Error(
+"Invalid number for that base"
 );
 
-const dec =
+}
+
+const decimal =
 toDecimal(
-num,
+number,
 from
 );
 
-const res =
+const converted =
 fromDecimal(
-dec,
+decimal,
 to
 );
 
@@ -392,13 +444,13 @@ document
 .innerHTML =
 `
 Decimal:
-${dec}
+${decimal}
 <br><br>
 Result:
-${res}
+${converted}
 `;
 
-showTable(
+updateTable(
 Math.max(
 from,
 to
@@ -406,14 +458,14 @@ to
 );
 
 }
-catch(e){
+catch(err){
 
 document
 .getElementById(
 "result"
 )
 .textContent =
-e.message;
+err.message;
 
 }
 
@@ -423,7 +475,7 @@ function toggleTable(){
 
 document
 .getElementById(
-"tableBox"
+"tableContainer"
 )
 .classList
 .toggle(
@@ -436,17 +488,22 @@ document
 .getElementById(
 "convertBtn"
 )
-.onclick =
-convert;
+.addEventListener(
+"click",
+convert
+);
 
 document
 .getElementById(
 "tableBtn"
 )
-.onclick =
-toggleTable;
+.addEventListener(
+"click",
+toggleTable
+);
 
 </script>
 
 </body>
+
 </html>
