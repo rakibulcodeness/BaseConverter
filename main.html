@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Base Converter (Supports Decimals)</title>
+
+<style>
+body{
+    font-family:Arial,sans-serif;
+    background:#111;
+    color:white;
+    padding:30px;
+}
+
+.container{
+    max-width:500px;
+    margin:auto;
+}
+
+input{
+    width:100%;
+    padding:10px;
+    margin:10px 0;
+    font-size:18px;
+}
+
+button{
+    padding:10px 20px;
+    font-size:18px;
+    cursor:pointer;
+}
+
+#result{
+    margin-top:20px;
+    font-size:22px;
+    word-break:break-word;
+}
+</style>
+</head>
+
+<body>
+
+<div class="container">
+<h1>Base Converter</h1>
+
+<input id="number" placeholder="Number (e.g. 101.101)">
+<input id="fromBase" type="number" min="2" max="36" placeholder="From Base">
+<input id="toBase" type="number" min="2" max="36" placeholder="To Base">
+
+<button onclick="convert()">Convert</button>
+
+<div id="result"></div>
+</div>
+
+<script>
+
+function charValue(c){
+    return parseInt(c,36);
+}
+
+function decimalToBase(num, base, precision=20){
+
+    let intPart=Math.floor(num);
+    let frac=num-intPart;
+
+    let result=intPart.toString(base).toUpperCase();
+
+    if(frac===0) return result;
+
+    result+=".";
+
+    for(let i=0;i<precision;i++){
+        frac*=base;
+
+        let digit=Math.floor(frac);
+
+        result+=digit.toString(base).toUpperCase();
+
+        frac-=digit;
+
+        if(frac===0) break;
+    }
+
+    return result;
+}
+
+function baseToDecimal(value, base){
+
+    value=value.toUpperCase();
+
+    let parts=value.split(".");
+
+    let integer=parts[0];
+    let fraction=parts[1] || "";
+
+    let total=0;
+
+    for(let i=0;i<integer.length;i++){
+        total+=
+            charValue(integer[i])*
+            Math.pow(base,
+            integer.length-i-1);
+    }
+
+    for(let i=0;i<fraction.length;i++){
+        total+=
+            charValue(fraction[i])*
+            Math.pow(base,
+            -(i+1));
+    }
+
+    return total;
+}
+
+function validate(value, base){
+
+    for(let c of value.replace(".","")){
+        if(charValue(c)>=base || isNaN(charValue(c))){
+            return false;
+        }
+    }
+
+    return true;
+}
+
+function convert(){
+
+    try{
+
+        let num=
+            document
+            .getElementById("number")
+            .value
+            .trim();
+
+        let from=
+            Number(
+            document
+            .getElementById("fromBase")
+            .value);
+
+        let to=
+            Number(
+            document
+            .getElementById("toBase")
+            .value);
+
+        if(
+            from<2||
+            from>36||
+            to<2||
+            to>36
+        ){
+            throw "Bases must be 2–36";
+        }
+
+        if(!validate(num,from)){
+            throw "Invalid number for that base";
+        }
+
+        let decimal=
+            baseToDecimal(
+                num,
+                from
+            );
+
+        let output=
+            decimalToBase(
+                decimal,
+                to
+            );
+
+        document
+        .getElementById("result")
+        .innerHTML=
+        `
+        Decimal: ${decimal}<br>
+        Result: ${output}
+        `;
+
+    }catch(e){
+        document
+        .getElementById("result")
+        .textContent=e;
+    }
+
+}
+
+</script>
+
+</body>
+</html>
