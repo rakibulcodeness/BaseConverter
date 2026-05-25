@@ -2,7 +2,7 @@
 <html>
 <head>
 <meta charset="UTF-8">
-<title>Advanced Base Converter</title>
+<title>Universal Base Converter</title>
 
 <style>
 
@@ -10,7 +10,7 @@ body{
     background:#111;
     color:white;
     font-family:Arial;
-    padding:20px;
+    padding:30px;
 }
 
 .container{
@@ -27,8 +27,8 @@ input{
 
 button{
     padding:10px 16px;
-    margin-top:10px;
-    cursor:pointer;
+    margin:5px;
+    font-size:16px;
 }
 
 #result{
@@ -43,8 +43,8 @@ table{
 }
 
 td,th{
-    border:1px solid #444;
-    padding:6px;
+    border:1px solid #555;
+    padding:8px;
 }
 
 .hidden{
@@ -61,30 +61,30 @@ td,th{
 <h1>Universal Base Converter</h1>
 
 <input id="num"
-placeholder="Number">
+placeholder="Enter number">
 
-<input
-id="from"
+<input id="from"
 type="number"
 placeholder="From Base">
 
-<input
-id="to"
+<input id="to"
 type="number"
 placeholder="To Base">
 
-<button onclick="convert()">
+<button id="convertBtn">
 Convert
 </button>
 
-<button onclick="toggleTable()">
+<button id="tableBtn">
 Show Digit Table
 </button>
 
 <div id="result"></div>
 
 <div id="tableBox" class="hidden">
+
 <table>
+
 <thead>
 <tr>
 <th>Symbol</th>
@@ -96,6 +96,7 @@ Show Digit Table
 </tbody>
 
 </table>
+
 </div>
 
 </div>
@@ -103,23 +104,25 @@ Show Digit Table
 <script>
 
 const DIGITS =
-"0123456789"+
-"ABCDEFGHIJKLMNOPQRSTUVWXYZ"+
-"abcdefghijklmnopqrstuvwxyz"+
-"!@#$%^&*()-_=+[]{}|;:',<>/?`~\\\"";
+"0123456789" +
+"ABCDEFGHIJKLMNOPQRSTUVWXYZ" +
+"abcdefghijklmnopqrstuvwxyz" +
+"!#$%&()*+,-/:;<=>?@[\\]^_`{|}~";
 
 const MAX_BASE =
 DIGITS.length;
 
-function valueOf(c){
+function valueOf(ch){
 
-let i=
-DIGITS.indexOf(c);
+const v =
+DIGITS.indexOf(ch);
 
-if(i===-1)
-throw "Invalid digit";
+if(v===-1)
+throw Error(
+"Invalid character: " + ch
+);
 
-return i;
+return v;
 
 }
 
@@ -129,15 +132,20 @@ return DIGITS[v];
 
 }
 
-function validate(n,b){
+function validate(text,base){
+
+text =
+text.replace(".","");
 
 for(
-let c of
-n.replace(".","")
+const c
+of text
 ){
 
 if(
-valueOf(c)>=b
+valueOf(c)
+>=
+base
 )
 return false;
 
@@ -152,16 +160,17 @@ text,
 base
 ){
 
-let parts=
+const parts =
 text.split(".");
 
-let int=
+const int =
 parts[0];
 
-let frac=
-parts[1]||"";
+const frac =
+parts[1] || "";
 
-let total=0;
+let total =
+0;
 
 for(
 let i=0;
@@ -169,16 +178,14 @@ i<int.length;
 i++
 ){
 
-total+=
+total +=
 valueOf(
 int[i]
 )
 *
-base**
-(
-int.length-
-i-
-1
+Math.pow(
+base,
+int.length-i-1
 );
 
 }
@@ -189,13 +196,13 @@ i<frac.length;
 i++
 ){
 
-total+=
+total +=
 valueOf(
 frac[i]
 )
 *
-base**
-(
+Math.pow(
+base,
 -(i+1)
 );
 
@@ -211,13 +218,16 @@ base,
 precision=20
 ){
 
-let int=
-Math.floor(num);
+let int =
+Math.floor(
+num
+);
 
-let frac=
+let frac =
 num-int;
 
-let out="";
+let out =
+"";
 
 if(
 int===0
@@ -228,15 +238,14 @@ while(
 int>0
 ){
 
-out=
+out =
 digitOf(
-int%
-base
+int%base
 )
 +
 out;
 
-int=
+int =
 Math.floor(
 int/base
 );
@@ -248,7 +257,7 @@ frac===0
 )
 return out;
 
-out+=".";
+out += ".";
 
 for(
 let i=0;
@@ -256,19 +265,17 @@ i<precision;
 i++
 ){
 
-frac*=base;
+frac *= base;
 
-let d=
+let d =
 Math.floor(
 frac
 );
 
-out+=
-digitOf(
-d
-);
+out +=
+digitOf(d);
 
-frac-=d;
+frac -= d;
 
 if(
 frac===0
@@ -281,18 +288,54 @@ return out;
 
 }
 
+function showTable(base){
+
+const body =
+document.getElementById(
+"tableBody"
+);
+
+body.innerHTML =
+"";
+
+for(
+let i=0;
+i<base;
+i++
+){
+
+const row =
+document.createElement(
+"tr"
+);
+
+row.innerHTML =
+`
+<td>${DIGITS[i]}</td>
+<td>${i}</td>
+`;
+
+body.appendChild(
+row
+);
+
+}
+
+}
+
 function convert(){
 
 try{
 
-let n=
+const num =
 document
 .getElementById(
 "num"
 )
-.value;
+.value
+.trim();
 
-let f=
+const from =
 Number(
 document
 .getElementById(
@@ -301,7 +344,7 @@ document
 .value
 );
 
-let t=
+const to =
 Number(
 document
 .getElementById(
@@ -311,41 +354,42 @@ document
 );
 
 if(
-f<2||
-t<2||
-f>MAX_BASE||
-t>MAX_BASE
+from<2||
+to<2||
+from>MAX_BASE||
+to>MAX_BASE
 )
-throw
-"Supported bases: 2–"+
-MAX_BASE;
+throw Error(
+"Supported bases: 2–"+MAX_BASE
+);
 
 if(
 !validate(
-n,
-f
+num,
+from
 )
 )
-throw
-"Number invalid for base";
-
-let dec=
-toDecimal(
-n,
-f
+throw Error(
+"Invalid number"
 );
 
-let res=
+const dec =
+toDecimal(
+num,
+from
+);
+
+const res =
 fromDecimal(
 dec,
-t
+to
 );
 
 document
 .getElementById(
 "result"
 )
-.innerHTML=
+.innerHTML =
 `
 Decimal:
 ${dec}
@@ -356,50 +400,20 @@ ${res}
 
 showTable(
 Math.max(
-f,
-t
+from,
+to
 )
 );
 
 }
-
 catch(e){
 
 document
 .getElementById(
 "result"
 )
-.textContent=e;
-
-}
-
-}
-
-function showTable(
-base
-){
-
-let body=
-document
-.getElementById(
-"tableBody"
-);
-
-body.innerHTML="";
-
-for(
-let i=0;
-i<base;
-i++
-){
-
-body.innerHTML+=
-`
-<tr>
-<td>${DIGITS[i]}</td>
-<td>${i}</td>
-</tr>
-`;
+.textContent =
+e.message;
 
 }
 
@@ -407,17 +421,30 @@ body.innerHTML+=
 
 function toggleTable(){
 
-let box=
 document
 .getElementById(
 "tableBox"
-);
-
-box.classList.toggle(
+)
+.classList
+.toggle(
 "hidden"
 );
 
 }
+
+document
+.getElementById(
+"convertBtn"
+)
+.onclick =
+convert;
+
+document
+.getElementById(
+"tableBtn"
+)
+.onclick =
+toggleTable;
 
 </script>
 
