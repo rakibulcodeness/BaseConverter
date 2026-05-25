@@ -2,187 +2,420 @@
 <html>
 <head>
 <meta charset="UTF-8">
-<title>Base Converter (Supports Decimals)</title>
+<title>Advanced Base Converter</title>
 
 <style>
+
 body{
-    font-family:Arial,sans-serif;
     background:#111;
     color:white;
-    padding:30px;
+    font-family:Arial;
+    padding:20px;
 }
 
 .container{
-    max-width:500px;
+    max-width:700px;
     margin:auto;
 }
 
 input{
     width:100%;
     padding:10px;
-    margin:10px 0;
+    margin:8px 0;
     font-size:18px;
 }
 
 button{
-    padding:10px 20px;
-    font-size:18px;
+    padding:10px 16px;
+    margin-top:10px;
     cursor:pointer;
 }
 
 #result{
     margin-top:20px;
-    font-size:22px;
-    word-break:break-word;
+    font-size:20px;
 }
+
+table{
+    width:100%;
+    border-collapse:collapse;
+    margin-top:20px;
+}
+
+td,th{
+    border:1px solid #444;
+    padding:6px;
+}
+
+.hidden{
+    display:none;
+}
+
 </style>
 </head>
 
 <body>
 
 <div class="container">
-<h1>Base Converter</h1>
 
-<input id="number" placeholder="Number (e.g. 101.101)">
-<input id="fromBase" type="number" min="2" max="36" placeholder="From Base">
-<input id="toBase" type="number" min="2" max="36" placeholder="To Base">
+<h1>Universal Base Converter</h1>
 
-<button onclick="convert()">Convert</button>
+<input id="num"
+placeholder="Number">
+
+<input
+id="from"
+type="number"
+placeholder="From Base">
+
+<input
+id="to"
+type="number"
+placeholder="To Base">
+
+<button onclick="convert()">
+Convert
+</button>
+
+<button onclick="toggleTable()">
+Show Digit Table
+</button>
 
 <div id="result"></div>
+
+<div id="tableBox" class="hidden">
+<table>
+<thead>
+<tr>
+<th>Symbol</th>
+<th>Value</th>
+</tr>
+</thead>
+
+<tbody id="tableBody">
+</tbody>
+
+</table>
+</div>
+
 </div>
 
 <script>
 
-function charValue(c){
-    return parseInt(c,36);
+const DIGITS =
+"0123456789"+
+"ABCDEFGHIJKLMNOPQRSTUVWXYZ"+
+"abcdefghijklmnopqrstuvwxyz"+
+"!@#$%^&*()-_=+[]{}|;:',<>/?`~\\\"";
+
+const MAX_BASE =
+DIGITS.length;
+
+function valueOf(c){
+
+let i=
+DIGITS.indexOf(c);
+
+if(i===-1)
+throw "Invalid digit";
+
+return i;
+
 }
 
-function decimalToBase(num, base, precision=20){
+function digitOf(v){
 
-    let intPart=Math.floor(num);
-    let frac=num-intPart;
+return DIGITS[v];
 
-    let result=intPart.toString(base).toUpperCase();
-
-    if(frac===0) return result;
-
-    result+=".";
-
-    for(let i=0;i<precision;i++){
-        frac*=base;
-
-        let digit=Math.floor(frac);
-
-        result+=digit.toString(base).toUpperCase();
-
-        frac-=digit;
-
-        if(frac===0) break;
-    }
-
-    return result;
 }
 
-function baseToDecimal(value, base){
+function validate(n,b){
 
-    value=value.toUpperCase();
+for(
+let c of
+n.replace(".","")
+){
 
-    let parts=value.split(".");
+if(
+valueOf(c)>=b
+)
+return false;
 
-    let integer=parts[0];
-    let fraction=parts[1] || "";
-
-    let total=0;
-
-    for(let i=0;i<integer.length;i++){
-        total+=
-            charValue(integer[i])*
-            Math.pow(base,
-            integer.length-i-1);
-    }
-
-    for(let i=0;i<fraction.length;i++){
-        total+=
-            charValue(fraction[i])*
-            Math.pow(base,
-            -(i+1));
-    }
-
-    return total;
 }
 
-function validate(value, base){
+return true;
 
-    for(let c of value.replace(".","")){
-        if(charValue(c)>=base || isNaN(charValue(c))){
-            return false;
-        }
-    }
+}
 
-    return true;
+function toDecimal(
+text,
+base
+){
+
+let parts=
+text.split(".");
+
+let int=
+parts[0];
+
+let frac=
+parts[1]||"";
+
+let total=0;
+
+for(
+let i=0;
+i<int.length;
+i++
+){
+
+total+=
+valueOf(
+int[i]
+)
+*
+base**
+(
+int.length-
+i-
+1
+);
+
+}
+
+for(
+let i=0;
+i<frac.length;
+i++
+){
+
+total+=
+valueOf(
+frac[i]
+)
+*
+base**
+(
+-(i+1)
+);
+
+}
+
+return total;
+
+}
+
+function fromDecimal(
+num,
+base,
+precision=20
+){
+
+let int=
+Math.floor(num);
+
+let frac=
+num-int;
+
+let out="";
+
+if(
+int===0
+)
+out="0";
+
+while(
+int>0
+){
+
+out=
+digitOf(
+int%
+base
+)
++
+out;
+
+int=
+Math.floor(
+int/base
+);
+
+}
+
+if(
+frac===0
+)
+return out;
+
+out+=".";
+
+for(
+let i=0;
+i<precision;
+i++
+){
+
+frac*=base;
+
+let d=
+Math.floor(
+frac
+);
+
+out+=
+digitOf(
+d
+);
+
+frac-=d;
+
+if(
+frac===0
+)
+break;
+
+}
+
+return out;
+
 }
 
 function convert(){
 
-    try{
+try{
 
-        let num=
-            document
-            .getElementById("number")
-            .value
-            .trim();
+let n=
+document
+.getElementById(
+"num"
+)
+.value;
 
-        let from=
-            Number(
-            document
-            .getElementById("fromBase")
-            .value);
+let f=
+Number(
+document
+.getElementById(
+"from"
+)
+.value
+);
 
-        let to=
-            Number(
-            document
-            .getElementById("toBase")
-            .value);
+let t=
+Number(
+document
+.getElementById(
+"to"
+)
+.value
+);
 
-        if(
-            from<2||
-            from>36||
-            to<2||
-            to>36
-        ){
-            throw "Bases must be 2–36";
-        }
+if(
+f<2||
+t<2||
+f>MAX_BASE||
+t>MAX_BASE
+)
+throw
+"Supported bases: 2–"+
+MAX_BASE;
 
-        if(!validate(num,from)){
-            throw "Invalid number for that base";
-        }
+if(
+!validate(
+n,
+f
+)
+)
+throw
+"Number invalid for base";
 
-        let decimal=
-            baseToDecimal(
-                num,
-                from
-            );
+let dec=
+toDecimal(
+n,
+f
+);
 
-        let output=
-            decimalToBase(
-                decimal,
-                to
-            );
+let res=
+fromDecimal(
+dec,
+t
+);
 
-        document
-        .getElementById("result")
-        .innerHTML=
-        `
-        Decimal: ${decimal}<br>
-        Result: ${output}
-        `;
+document
+.getElementById(
+"result"
+)
+.innerHTML=
+`
+Decimal:
+${dec}
+<br><br>
+Result:
+${res}
+`;
 
-    }catch(e){
-        document
-        .getElementById("result")
-        .textContent=e;
-    }
+showTable(
+Math.max(
+f,
+t
+)
+);
+
+}
+
+catch(e){
+
+document
+.getElementById(
+"result"
+)
+.textContent=e;
+
+}
+
+}
+
+function showTable(
+base
+){
+
+let body=
+document
+.getElementById(
+"tableBody"
+);
+
+body.innerHTML="";
+
+for(
+let i=0;
+i<base;
+i++
+){
+
+body.innerHTML+=
+`
+<tr>
+<td>${DIGITS[i]}</td>
+<td>${i}</td>
+</tr>
+`;
+
+}
+
+}
+
+function toggleTable(){
+
+let box=
+document
+.getElementById(
+"tableBox"
+);
+
+box.classList.toggle(
+"hidden"
+);
 
 }
 
